@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Composition</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+    :root {
+        --keyword: #c792ea;
+        --class: #dbb979;
+        --interface: #92d69e;
+        --method: #62BFFC;
+        --instance: #DE7C84;
+        --final-static: #EBB07A;
+        --static-method: #ffc66d;
+        --comment: #59626f;
+        --string: #92d69e;
+        --background: #303845;
+        --text-default-color: #a6b2c0;
+    }
+    * {
+        color: var(--text-default-color);
+        font-family: "Gill Sans MT", Calibri, sans-serif;
+    }
+    pre > * {
+        font-family: ui-monospace, monospace;
+    }
+    pre {
+        font-family: ui-monospace, monospace;
+    }
+    span.code > * {
+        font-family: ui-monospace, monospace;
+    }
+    span.code {
+        font-family: ui-monospace, monospace;
+    }
+    a {
+        color: var(--keyword);
+        text-decoration: none;
+    }
+    .keyword { color: var(--keyword) }
+    .class { color: var(--class) }
+    .interface { color: var(--interface) }
+    .meth { color: var(--method) }
+    .instance { color: var(--instance) }
+    .final-static { color: var(--final-static) }
+    .stat-meth { color: var(--static-method); font-style: italic }
+    .comment { color: var(--comment); font-style: italic }
+    .string { color: var(--string) }
+    body {
+        background-color: var(--background);
+        display: flex;
+        flex-direction: column;
+    }
+    body > div {
+        max-width: 50rem;
+        align-self: center;
+    }
+
+    hr {
+        width: 66%;
+        border: 1px solid var(--comment);
+    }
+    .indent {
+        margin-left: 3rem;
+    }
+    .quote {
+        display: flex;
+        flex-direction: column;
+    }
+    .quote > div {
+        display: flex;
+        flex-direction: column;
+        align-self: center;
+    }
+    .quote > div > * {
+        color: var(--instance);
+        text-align: right;
+    }
+    .quote > div  > span:first-child {
+        font-size: 25px;
+    }
+    .quote > div > span:first-child:before {
+        content: '❝';
+        font-size: 30px;
+    }
+    .quote > div > span:first-child::after {
+        content: "❞";
+        font-size: 30px;
+    }
+    .quote > div > span:last-child:before { content: "~"}
+    .quote > div > span:last-child {
+        color: var(--comment);
+    }
+</style>
+</head>
+<body>
+
+<div>
+
+    <div>
+        <h1>Composition</h1>
+        <span class="comment indent">This text is an adaptation of a 30min talk on the subject.</span>
+
+        <p>
+            In programming,  composition is one of those tools/styles of OOP that is much discussed and used widely. Actively or not. I have noticed how composition is used in many big successful libraries, but almost never in the day to day business applications. I think that is a loss.
+        </p>
+        <p>
+            When you look into the topic you get this a lot:
+        </p>
+        <div class="quote">
+            <div>
+                <span>Favor Composition over Inheritance</span>
+                <span>Gang of Four</span>
+            </div>
+        </div>
+
+        <p>
+            I agree fondly on the sentiment of <em>composition over inheritance</em>, and I did look into this matter and wanted to point to a place in the code I was working on at the time of the talk, where I could show optimizations wrt. this angle.
+            <br>
+            I found none, and in general very little inheritance was used, and it was never abused.
+            <br>
+            I pondered a bit on the topic. And I concluded that I was okay with this outcome; that I could not show <em>composition over inheritance</em>. In fact, I was happy about it because I didn't like the argumentation in general. <em>Composition over inheritance</em> is a hint, not of the greatness of composition, but the shortcomings of inheritance. In addition, I rarely have to solve issues regarding things like reuse and abuse of inheritance; I was solving issues of too much logic crammed into the same object. So I went on with another angle. <strong>How I use composition and interfaces to break down my problems</strong>.
+        </p>
+        <p class="indent comment">
+            I did observe a place where composition should have been used.
+            <br>
+            Fortunately the writers had done the second worst thing: copy-pasted code; second to inheritance
+            <br>
+            while harder to refactor it's easier to maintain.
+        </p>
+        <p>
+            In this text I will present some general tools to work with composition. I will then give an example case where I use composition of the same interface to break down a problem.
+        </p>
+    </div>
+    <hr>
+    <div>
+        <h2>Toolbox</h2>
+        <p>
+            Just to get this out of the way: composition is the concept of one object using another object to fulfil its function. We say that the relation between the two is a <em>"has a"</em>-relationship.
+        </p>
+        <p>
+            The best interface is a "Single-method interface". It has a <strong><em>strong abstraction</em></strong>. It comes with two objects input and output. They should probably be interfaces. They would normally be interfaces with <strong><em>weak abstraction</em></strong>; their resemblance to the implementing object is large.
+        </p>
+        <p class="indent comment">
+            This statement is especially true for Java as single method interfaces can be anonymously be implemented as any object that follow the correct signature.
+            <br>
+            In fact, the Go superpower; of interfaces being implemented once an object has its containing methods is exactly this - in Java only for single method interfaces.
+            <br>
+            ie. "My Code" implements "your" single-method interfaces without me knowing it!
+        </p>
+    </div>
+    <hr>
+    <div>
+        <pre>
+<span class="keyword">interface </span><span class="interface">Obj </span>{
+}
+
+<span class="keyword">interface </span><span class="interface">Out </span>{
+}
+
+<span class="keyword">interface </span><span class="interface">I </span>{
+    <span class="interface">Out</span> <span class="meth">getContent</span>(<span class="interface">Obj</span> obj);
+}
+        </pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            The first compositional object in our toolbox is a <strong>wrapper</strong>. It implements the interface and <em>has an</em> implementation of the interface that it delegates to. It may then enhance input and/or output, log, add metrics and the like(side effects). The wrapper is related to the <strong>decorator pattern</strong>.
+        </p>
+    </div>
+    <hr>
+    <div>
+        <pre>
+<span class="comment">/**</span>
+ <span class="comment">* a.k.a. Decorator pattern</span>
+ <span class="comment">* Wraps to apply logic before, after or around another implementation</span>
+ <span class="comment">* notably: enhance input/output, metrics, logging etc.</span>
+ <span class="comment">*/</span>
+<span class="keyword">final class </span><span class="class">Wrapper </span><span class="keyword">implements </span><span class="interface">I </span>{
+    <span class="interface">I </span> <span class="instance">other</span>; <span class="comment">// delegate </span>
+
+    <span class="keyword">@Override</span>
+    <span class="interface">Out</span> <span class="meth">getContent</span>(<span class="interface">Obj</span> obj) {
+        <span class="comment">//do thing with `obj`</span>
+        <span class="keyword">var</span> <span class="final-static">out</span> = <span class="instance">other</span>.<span class="meth">getContent</span>(obj);
+        <span class="comment">// or `out`</span>
+        <span class="keyword">return </span><span class="final-static">out</span>;
+    }
+}
+        </pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            The next composite object is the <strong>map composite</strong>. It has a map containing implementations of the interface and implements the interface by calculating a key from the input, delegating to the found instance to fulfil the interface. This is closely  related to the <em>factory class</em> which would hold but not implement the interface and merely return an instance, normally, instantiated on call. I usually hold a static map of already instantiated instances of the underlying interface, or compute absent keys on first call if able (cache equivalent).
+        </p>
+    </div>
+    <hr>
+    <div>
+        <pre>
+<span class="comment">/**</span>
+ <span class="comment">* Map</span><span class="comment">&lt;K</span><span class="comment">, I&gt; </span>
+ <span class="comment">* used to split on logical key</span>
+ <span class="comment">* Compositional IFactory</span>
+ <span class="comment">*/</span>
+<span class="keyword">final class </span><span class="class">MapDelegate </span><span class="keyword">implements </span><span class="interface">I </span>{
+    <span class="interface">Map</span>&lt;<span class="interface">Key</span>, <span class="interface">I</span>&gt; <span class="instance">iMap</span>;
+    <span class="interface">Function</span>&lt;<span class="interface">Obj</span>, <span class="interface">Key</span>&gt; <span class="instance">keyFunc</span>;
+
+    <span class="keyword">@Override</span>
+    <span class="interface">Out</span><span class="meth"> getContent</span>(<span class="interface">Obj</span> obj) {
+        <span class="keyword">return </span><span class="instance">iMap</span>.<span class="meth">get</span>(<span class="instance">keyFunc</span>.<span class="meth">apply</span>(obj).<span class="meth">getContent</span>(obj);
+    }
+}
+        </pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            The third object in the toolbox is the <strong>composite</strong>; it delegates to a list. This is the <em>classic</em> composition proto object. I rarely have the need to do this. (depending on the use case this could guard that all downstream objects must be called in the list; an intent that may be clearer later)
+        </p>
+    </div>
+    <hr>
+    <div>
+        <pre>
+<span class="comment">/**</span>
+ <span class="comment">* list</span><span class="comment">&lt;I&gt;</span>
+ <span class="comment">* it is called a composite I</span>
+ <span class="comment">*/</span>
+<span class="keyword">final class </span><span class="class">CompositeDelegate </span><span class="keyword">implements </span><span class="interface">I </span>{
+    <span class="interface">List</span>&lt;<span class="interface">I</span>&gt; <span class="instance">is</span>;
+    <span class="interface">BinaryOperator</span>&lt;<span class="interface">Out</span>&gt; <span class="instance">aggregator</span>; <span class="comment">// void interfaces would just call all wrapped classes</span>
+
+    <span class="keyword">@Override</span>
+    <span class="interface">Out </span><span class="meth">getContent</span>(<span class="interface">Obj</span> obj) {
+        <span class="keyword">return </span><span class="instance">is</span>.<span class="meth">stream</span>()
+                .<span class="meth">map</span>(it -&gt; it.<span class="meth">getContent</span>(obj)
+                .<span class="meth">reduce</span>(<span class="keyword">this</span>::<span class="instance">aggregator</span>);
+    }
+}
+        </pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            You could think of other proto objects for your toolbox depending on your use case, like a 4 state double boolean, or switch on an enum (if you like that better than a map). As developers, we would decide on-demand which we use.
+        </p>
+        <p>
+            There are two related objects that I would like to introduce. The first is the object you would use to adapt other code signatures into the interface in question. it may hold simple logic,  and it is <strong>compositional</strong> itself.
+        </p>
+    </div>
+    <hr>
+    <div>
+        <pre>
+<span class="comment">/**</span>
+ <span class="comment">* A concrete with or without an interface; </span>
+ <span class="comment">* holds helpful control flow etc.</span>
+ <span class="comment">* This could be used to adapt the interface I to another interface.</span>
+ <span class="comment">*/</span>
+<span class="keyword">final class </span><span class="class">Composable </span>{
+    <span class="keyword">private final </span><span class="interface">I </span><span class="instance">anI</span>;
+    <span class="keyword">private final </span><span class="interface">Stream</span>&lt;<span class="interface">Obj</span>&gt; <span class="instance">objSupplier</span>;
+    <span class="keyword">private final </span><span class="interface">UnaryFunction</span>&lt;<span class="interface">Out</span>&gt; <span class="instance">outputEnricher</span>;
+
+    <span class="keyword">public </span><span class="meth">Composable</span>(<span class="interface">I </span>anI, <span class="interface">Stream</span>&lt;<span class="interface">Obj</span>&gt; objSupplier, <span class="interface">UnaryOperator</span>&lt;<span class="interface">Out</span>&gt; outEn) {<span class="comment">/* omitted */</span>}
+
+    <span class="interface">Stream</span>&lt;<span class="interface">Out</span>&gt; <span class="interface">doHandle</span>() {
+        <span class="comment">// contrived, a bit too simple probably...</span>
+        <span class="keyword">return </span><span class="instance">objSupplier</span>.<span class="meth">map</span>(<span class="instance">anI</span>::<span class="meth">getContent</span>).<span class="meth">map</span>(<span class="instance">outputEnricher</span>::<span class="meth">apply</span>);
+    }
+}
+        </pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            To wrap it up, the last general object is more specific to Java, because of constraints in its structuring. It is the <strong>factory class</strong>. It is un-instantiable. It holds private (or package-private) implementations of the interface and return combinations of implementations using public static methods/convenience-methods.
+        </p>
+    </div>
+    <hr>
+    <div>
+    <pre>
+<span class="comment">/**</span>
+ <span class="comment">* Factory class that hides private implementations, </span>
+ <span class="comment">* accessible via public static factory methods</span>
+ <span class="comment">* produce expressive (dare I say - self documenting) APIs</span>
+ <span class="comment">*/</span>
+<span class="keyword">public final class </span><span class="class">Is </span>{ <span class="comment">// {interfaceName}s convention</span>
+    <span class="keyword">private </span><span class="meth">Is</span>() {} <span class="comment">// cannot instantiate</span>
+
+    <span class="comment">// private or package-private (testability)</span>
+    <span class="keyword">private static final class </span><span class="class">IThatGetsFromFile </span><span class="keyword">implements </span><span class="interface">I </span>{<span class="comment">/* omitted */</span>}
+
+    <span class="keyword">public static </span><span class="interface">I </span><span class="meth">fromFileStore</span>(<span class="class">String</span> path) {
+        <span class="keyword">return new </span><span class="meth">IThatGetsFromFile</span>(path);
+    }
+
+    <span class="keyword">private static final class </span><span class="class">ComposableI </span><span class="keyword">implements </span><span class="interface">I </span>{<span class="comment">/* omitted */</span>}
+
+
+    <span class="keyword">public static </span><span class="interface">I </span><span class="meth">withDefaults</span>() {
+        <span class="keyword">return new </span><span class="meth">ComposableI</span>(<span class="keyword">new </span><span class="meth">DefaultI</span>());
+    }
+
+    <span class="keyword">private static </span><span class="interface">I </span><span class="meth">bells</span>(){}
+    <span class="keyword">private static </span><span class="interface">I </span><span class="meth">whistles</span>(){}
+    <span class="keyword">private static </span><span class="interface">I </span><span class="meth">decider</span>(<span class="interface">I </span>one, <span class="interface">I </span>other) {}
+
+    <span class="keyword">public static </span><span class="interface">I </span><span class="meth">withBells</span>() {
+        <span class="keyword">return new </span><span class="meth">ComposableI</span>(<span class="stat-meth">bells</span>());
+    }
+
+    <span class="keyword">public static </span><span class="interface">I </span><span class="meth">withWhistles</span>() {
+        <span class="keyword">return new </span><span class="meth">ComposableI</span>(<span class="stat-meth">whistles</span>());
+    }
+
+    <span class="keyword">public static </span><span class="interface">I </span><span class="meth">withBellsAndWhistles</span>() {
+        <span class="keyword">return new </span><span class="meth">ComposableI</span>(<span class="stat-meth">decider</span>(<span class="stat-meth">bells</span>(), <span class="stat-meth">whistles</span>()));
+    }
+}
+    </pre>
+    </div>
+    <hr>
+
+
+    <div>
+        <p>
+            <span class="indent comment"> TODO - wrap up section </span>
+        </p>
+    </div>
+    <hr>
+    <div>
+        <h2>The Case with Composition</h2>
+        <p>
+            I have showed you a range of compositional objects, and it may be unclear how to bring it all together, so let's put the toolbox to use; let's build a web framework!
+        </p>
+
+        <p>
+            To build a case I start with a simple single method interface, with a request and response. This interface is virtually identical to the go stdlib
+            <a href="https://pkg.go.dev/net/http#Handler">net/http Handler</a>. However, the request and the response objects are kept shallow for simplicity.
+        </p>
+    </div>
+    <hr>
+
+    <div>
+    <pre>
+
+<span class="keyword">public class </span><span class="class">WebFramework </span>{
+    <span class="comment">// Simplified for clarity</span>
+
+    <span class="keyword">interface </span><span class="interface">Request </span>{
+        <span class="class">String </span><span class="meth">path</span>();
+        <span class="class">String </span><span class="meth">body</span>(); <span class="comment">// InputStream simplified</span>
+        <span class="comment">// omitted: request type, headers, trailers, maybe context etc.</span>
+    }
+
+    <span class="keyword">interface </span><span class="interface">Response </span>{
+        <span class="keyword">void </span><span class="meth">body</span>(<span class="class">String </span>body);
+        <span class="keyword">void </span><span class="meth">addHeader</span>(<span class="class">String </span>header, <span class="class">String </span>value);
+        <span class="comment">// omitted trailers, etc. and a lot more</span>
+    }
+
+    <span class="comment">// Core server / http handler</span>
+    <span class="comment">// stolen from Go, but this interface (or similar) is used extensively across many languages</span>
+    <span class="keyword">interface </span><span class="interface">HttpHandler </span>{
+        <span class="keyword">void </span><span class="meth">serveHttp</span>(<span class="interface">Request </span>req, <span class="interface">Response </span>res);
+    }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>We start with a router; we need to split logic on http path. It delegates via path-matching to the configured <span class="code interface">HttpHandler</span>. It has a <span class="code instance">notfoundHandler</span> for situations where the path cannot be resolved. The web framework provide a default implementation for the not found case, and means to override this default. </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+    <span class="comment">/**</span>
+     <span class="comment">* ┌─────────────────┐</span>
+     <span class="comment">* │     Routing     │</span>
+     <span class="comment">* │          ┌──┐   │</span>
+     <span class="comment">* │       ┌─►│  │   │</span>
+     <span class="comment">* │       │  ├──┤   │</span>
+     <span class="comment">* │  path ├─►│  │   │</span>
+     <span class="comment">* │  ┌──┐ │  ├──┤   │</span>
+     <span class="comment">* │  │  ├─┼─►│  │   │</span>
+     <span class="comment">* │  └──┘ │  ├──┤   │</span>
+     <span class="comment">* │       ├─►│  │   │</span>
+     <span class="comment">* │       │  ├──┤   │</span>
+     <span class="comment">* │       └─►│  │   │</span>
+     <span class="comment">* │          └──┘   │</span>
+     <span class="comment">* │       Handlers  │</span>
+     <span class="comment">* └─────────────────┘</span>
+     <span class="comment">*/</span>
+    <span class="keyword">private static final class </span><span class="class">RoutingHttpHandler </span><span class="keyword">implements </span><span class="interface">HttpHandler </span>{
+        <span class="comment">// ignore concurrency</span>
+        <span class="keyword">private final </span><span class="interface">Map</span>&lt;<span class="class">String</span>, <span class="interface">HttpHandler</span>&gt; <span class="instance">handlers</span>;
+        <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">notFoundHandler</span>;
+
+        <span class="meth">RoutingHttpHandler</span>(<span class="interface">Map</span>&lt;<span class="class">String</span>, <span class="interface">HttpHandler</span>&gt; handlers, <span class="interface">HttpHandler</span> notFoundHandler) {
+            <span class="keyword">this</span>.<span class="instance">handlers </span>= handlers;
+            <span class="keyword">this</span>.<span class="instance">notFoundHandler </span>= notFoundHandler;
+        }
+
+        <span class="class">@Override</span>
+        <span class="keyword">public void </span><span class="meth">serveHttp</span>(<span class="interface">Request</span> res, <span class="interface">Response</span> res) {
+            <span class="instance">handlers</span>.<span class="meth">getOrDefault</span>(req.<span class="meth">path</span>(), <span class="instance">notFoundHandler</span>).<span class="meth">serveHttp</span>(req, res);
+        }
+    }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            Accessing the routing configuration is done via these folowing methods and a concrete implementations of the not found handler:
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+    <span class="keyword">public static final </span><span class="interface">HttpHandler </span><span class="final-static">defaultNotFound </span>= (req, res) -&gt; res.<span class="meth">body</span>(<span class="string">&quot;404: not found!&quot;</span>);
+
+    <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">route</span>(<span class="interface">Map</span>&lt;<span class="class">String</span>, <span class="interface">HttpHandler</span>&gt; routes, <span class="interface">HttpHandler</span> notFound) {
+        <span class="keyword">return new </span><span class="meth">RoutingHttpHandler</span>(routes, notFound);
+    }
+
+    <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">routeWithDefaultNotFound</span>(<span class="interface">Map</span>&lt;<span class="class">String</span>, <span class="interface">HttpHandler</span>&gt; routes) {
+        <span class="keyword">return </span><span class="stat-meth">route</span>(routes, <span class="final-static">defaultNotFound</span>);
+    }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            The next thing for the framework is a <em>factory class</em> for a selection of middlewares, naturally called <span class="code class">MiddleWares</span>.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+    <span class="comment">// our framework needs middlewares</span>
+    <span class="keyword">class </span><span class="class">MiddleWares </span>{
+        <span class="keyword">private </span><span class="meth">MiddleWares</span>() {} <span class="comment">// un-instantiable</span>
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            It has a mostly, unimplemented <span class="code class">AuthenticationMiddleWare</span>, that continue the chain if the request can be successfully authenticated else delegates to a configurable forbidden-handler.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+        <span class="comment">/**</span>
+         <span class="comment">* Simple MiddleWare; short circuits on not authenticated</span>
+         <span class="comment">*/</span>
+        <span class="keyword">private static final class </span><span class="class">AuthenticationMiddleWare </span><span class="keyword">implements </span><span class="interface">HttpHandler </span>{
+
+            <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">unAuthHandler</span>;
+            <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">next</span>;
+
+            <span class="meth">AuthenticationMiddleWare</span>(<span class="interface">HttpHandler</span> unAuthHandler, <span class="interface">HttpHandler</span> next) {
+                <span class="keyword">this</span>.<span class="instance">unAuthHandler </span>= unAuthHandler;
+                <span class="keyword">this</span>.<span class="instance">next </span>= next;
+            }
+
+            <span class="class">@Override</span>
+            <span class="keyword">public void </span><span class="meth">serveHttp</span>(<span class="interface">Request</span> res, <span class="interface">Response</span> res) {
+                <span class="class">String</span>[] <span class="final-static">authHeaders </span>= <span class="keyword">null</span>; <span class="comment">// req.header(&quot;Authorization&quot;)</span>
+                <span class="comment">//if (authHeaders == null || authHeader.length == 0) {</span>
+                <span class="comment">//  res.body(&quot;401: Unauthorized&quot;);</span>
+                <span class="comment">//  res.addHeader(&quot;WWW-Authenticate&quot;, ...);</span>
+                <span class="comment">//  return;</span>
+                <span class="comment">//}</span>
+                <span class="keyword">if </span>(<span class="meth">isAuthenticated</span>(<span class="final-static">authHeaders</span>)) {
+                    <span class="instance">next</span>.<span class="meth">serveHttp</span>(req, res);
+                    <span class="keyword">return</span>;
+                }
+                <span class="keyword">this</span>.<span class="instance">unAuthHandler</span>.<span class="meth">serveHttp</span>(req, res);
+            }
+
+            <span class="keyword">private boolean </span><span class="class">isAuthenticated</span>(<span class="class">String</span>[] auth) {
+                <span class="comment">// check stuff with auth header</span>
+                <span class="keyword">return true</span>;
+            }
+    
+        }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            Here are some more concrete implementations of the <span class="code class">AuthenticationMiddleWare</span> and their factory class accessors.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+        <span class="keyword">private final static </span><span class="interface">HttpHandler </span><span class="final-static">notAuthenticated </span>= (req, res) -&gt; res.<span class="meth">body</span>(<span class="string">&quot;403: forbidden, go away!&quot;</span>);
+
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">authenticate</span>(<span class="interface">HttpHandler </span>unAuthHandler, <span class="interface">HttpHandler </span>handler) {
+            <span class="keyword">return new </span><span class="meth">AuthenticationMiddleWare</span>(unAuthHandler, handler);
+        }
+
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">authenticate</span>(<span class="interface">HttpHandler </span>handler) {
+            <span class="keyword">return </span><span class="stat-meth">authenticate</span>(notAuthenticated, handler);
+        }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            It has a very simple <span class="code class">BinaryHttpHandler</span> (this could be replaced by a <em>composite</em> handler wrapping a list/array)
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+        <span class="keyword">private static final class </span><span class="class">BinaryHttpHandler </span><span class="keyword">implements </span><span class="interface">HttpHandler </span>{
+            <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">first</span>;
+            <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">second</span>;
+
+            <span class="meth">BinaryHttpHandler</span>(<span class="interface">HttpHandler </span>first, <span class="interface">HttpHandler </span>second) {
+                <span class="keyword">this</span>.<span class="instance">first </span>= first;
+                <span class="keyword">this</span>.<span class="instance">second </span>= second;
+            }
+
+            <span class="class">@Override</span>
+            <span class="keyword">public void </span><span class="meth">serveHttp</span>(<span class="interface">Request</span> res, <span class="interface">Response</span> res) {
+                <span class="instance">first</span>.<span class="meth">serveHttp</span>(req, res);
+                <span class="instance">second</span>.<span class="meth">serveHttp</span>(req, res);
+            }
+        }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            Here are the factory class accessors and some simple loggers that use the <span class="code class">BinaryHttpHandler</span> for their concrete implementations.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">ordered</span>(<span class="interface">HttpHandler</span> doFirst, <span class="interface">HttpHandler</span> doSecond) {
+            <span class="keyword">return new </span><span class="meth">BinaryHttpHandler</span>(doFirst, doSecond);
+        }
+
+        <span class="keyword">private final static </span><span class="interface">Logger </span><span class="final-static">logger </span>= <span class="class">Logger</span>.<span class="class">getLogger</span>(<span class="string">&quot;middlewares&quot;</span>);
+
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">logBefore</span>(<span class="interface">HttpHandler </span>handler) {
+            <span class="keyword">return </span><span class="stat-meth">ordered</span>((req, res) -&gt; <span class="final-static">logger</span>.<span class="meth">log</span>(<span class="class">Level</span>.<span class="final-static">INFO</span>, <span class="class">req</span>.<span class="meth">path</span>() + <span class="string">&quot;: hello!&quot;</span>), <span class="class">handler</span>);
+        }
+
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">logAfter</span>(<span class="interface">HttpHandler </span>handler) {
+            <span class="keyword">return </span><span class="stat-meth">ordered</span>(<span class="class">handler</span>, (req, res) -&gt; <span class="final-static">logger</span>.<span class="meth">log</span>(<span class="class">Level</span>.<span class="final-static">INFO</span>,  <span class="string">&quot;Goodbye&quot;</span>));
+        }
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p> And here are some simple handlers for adding http headers to the response. It also adds a concrete implementation, that adds application/json to the response.</p>
+    </div>
+    <hr>
+    <div>
+<pre>
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">addHeader</span>(<span class="class">String</span> key, <span class="class">String</span> value, <span class="interface">HttpHandler </span>handler) {
+            <span class="keyword">return new </span><span class="meth">BinaryHttpHandler</span>(handler, (req, res) -&gt; res.<span class="meth">addHeader</span>(key, value));
+        }
+
+        <span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">applicationJson</span>(<span class="interface">HttpHandler </span>handler) {
+            <span class="keyword">return </span><span class="stat-meth">addHeader</span>(<span class="string">&quot;ContentType&quot;</span>, <span class="string">&quot;application/json&quot;</span>, handler);
+        }
+
+    }
+}  <span class="comment">// end of MiddleWares-class</span>
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>All in all this is a very naïve and simple web framework.</p>
+    </div>
+    <hr>
+    <div>
+        <h3>Showcase</h3>
+        <p>
+            To accommodate the framework, I will show you a server that orchestrates a <span class="code"><span class="class">WebFramework</span>.<span class="interface">HttpHandler</span></span>-based server.
+        </p>
+        <p>
+            I have built these fake request and response objects for this example.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+<span class="comment">// bad code! implicitly implements interface by record variable naming</span>
+<span class="keyword">record</span><span class="class"> DummyRequest</span>(<span class="class">String</span> path, <span class="class">String</span> body) <span class="keyword">implements </span><span class="class">WebFramework</span>.<span class="interface">Request </span>{}
+
+<span class="keyword">static final class </span><span class="class">DummyResponse </span><span class="keyword">implements </span><span class="class">WebFramework</span>.<span class="interface">Response </span>{
+    <span class="keyword">private final </span><span class="interface">Map</span>&lt;<span class="class">String</span>, <span class="interface">List</span>&lt;<span class="class">String</span>&gt;&gt; <span class="instance">headers </span>= <span class="keyword">new </span><span class="meth">HashMap</span>&lt;&gt;();
+    <span class="keyword">private </span><span class="class">String </span><span class="instance">body</span>;
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void </span><span class="meth">body</span>(<span class="class">String body</span>) {
+        <span class="keyword">this</span>.<span class="instance">body </span>= <span class="class">body</span>;
+    }
+
+    <span class="keyword">@Override</span>
+    <span class="keyword">public void </span><span class="class">addHeader</span>(<span class="class">String </span>header, <span class="class">String </span>value) {
+        <span class="keyword">var </span><span class="final-static">heads </span>= <span class="keyword">this</span>.<span class="instance">headers</span>.<span class="meth">computeIfAbsent</span>(header, s -&gt; <span class="keyword">new </span><span class="meth">ArrayList</span>&lt;&gt;());
+        <span class="final-static">heads</span>.<span class="meth">add</span>(value);
+    }
+}
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            Here's the code that compose this implementation's understanding of a server.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+<span class="keyword">import static </span><span class="class">WebFramework.MiddleWares.*</span>;
+
+    <span class="comment">// actual handler</span>
+    <span class="class">WebFramework</span>.<span class="interface">HttpHandler</span><span class="final-static"> importantBusinessLogicHandler </span>=
+            (req, res) -&gt; res.<span class="meth">body</span>(<span class="string">&quot;200: {</span>\&quot;<span class="string">Hello</span>\&quot;<span class="string">:</span>\&quot;<span class="string">&quot; </span>+ req.<span class="meth">body</span>() + <span class="string">&quot;</span>\&quot;<span class="string">}&quot;</span>);
+
+    <span class="comment">// our HTTPServer is an HttpHandler itself</span>
+    <span class="class">WebFramework</span>.<span class="interface">HttpHandler</span><span class="final-static"> server </span>=
+        <span class="stat-meth">logBefore</span>(<span class="stat-meth">logAfter</span>(
+                <span class="stat-meth">routeWithDefaultNotFound</span>(
+                    <span class="class">Map</span>.<span class="stat-meth">of</span>(
+                        <span class="string">&quot;/endpoint/resource&quot;</span>,
+                        <span class="stat-meth">authenticate</span>(<span class="stat-meth">applicationJson</span>(
+                            <span class="final-static">importantBusinessLogicHandler</span>))))
+                        <span class="comment">// more endpoints here</span>
+            )
+    );
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            The code for the server is quite outspoken; you must log before and after, then route.
+            <br>
+            There is one route: <span class="code string">"/endpoint/resource"</span>. It is handled by authenticating, adding header value and then serving the important business logic.
+        </p>
+        <p>
+            The next sections of code put it to the test.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+    <span class="keyword">var </span><span class="final-static">resp </span>= <span class="keyword">new </span><span class="meth">DummyResponse</span>();
+    <span class="final-static">server</span>.<span class="meth">serveHttp</span>(<span class="keyword">new </span><span class="meth">DummyRequest</span>(<span class="string">&quot;/endpoint/resource&quot;</span>, <span class="string">&quot;World&quot;</span>), <span class="final-static">resp</span>);
+
+    <span class="keyword">var </span><span class="final-static">log </span>= <span class="class">Logger</span>.<span class="stat-meth">getLogger</span>(<span class="string">&quot;output&quot;</span>);
+    <span class="final-static">log</span>.<span class="meth">log</span>(<span class="class">Level</span>.<span class="final-static">SEVERE</span>, <span class="final-static">resp</span>.<span class="instance">body</span>);
+    <span class="final-static">log</span>.<span class="meth">log</span>(<span class="class">Level</span>.<span class="final-static">SEVERE</span>, <span class="string">&quot;ContentType: {0}&quot;</span>, <span class="class">resp</span>.<span class="instance">headers</span>.<span class="meth">get</span>(<span class="string">&quot;ContentType&quot;</span>));
+
+        <span class="comment">$</span> INFO: /endpoint/resource: hello!
+        <span class="comment">$</span> INFO: Goodbye
+        <span class="comment">$</span> SEVERE: 200: {"Hello": "World"}
+        <span class="comment">$</span> SEVERE: ContentType: [application/json]
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            As you will notice once called this does exactly as expected. The server was composed of <span class="code stat-meth">logBefore</span>, <span class="code stat-meth">logAfter</span>,
+            the endpoint is routed and maps to the result <span class="code string">"200: {Hello: <span class="final-static">#{req.body()}</span>}"</span>. Then the content type header is added, in <span class="code stat-meth">applicationJson</span>.
+        </p>
+        <p>
+            A call trace could look like: <span class="code stat-meth">logBefore</span> > <span class="code string">"200: {Hello: <span class="final-static">#{req.body()}</span>}"</span> > <span class="code stat-meth">applicationJson</span> > <span class="code stat-meth">logAfter</span>
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+    <span class="keyword">var </span><span class="final-static">resp2 </span>= <span class="keyword">new </span><span class="meth">DummyResponse</span>();
+    <span class="final-static">server</span>.<span class="meth">serveHttp</span>(<span class="keyword">new </span><span class="class">DummyRequest</span>(<span class="string">&quot;unknown&quot;</span>, <span class="string">&quot;hell&quot;</span>), <span class="class">resp2</span>);
+
+    <span class="final-static">log</span>.<span class="meth">log</span>(<span class="class">Level</span>.<span class="final-static">WARNING</span>, <span class="final-static">resp2</span>.<span class="instance">body</span>);
+    <span class="final-static">log</span>.<span class="meth">log</span>(<span class="class">Level</span>.<span class="final-static">WARNING</span>, <span class="final-static">resp2</span>.<span class="instance">headers</span>.<span class="meth">isEmpty</span>() ? <span class="string">&quot;No headers added&quot; </span>: <span class="string">&quot;header was added&quot;</span>);
+
+        <span class="comment">$</span> INFO: unknown: hello!
+        <span class="comment">$</span> INFO: Goodbye
+        <span class="comment">$</span> WARNING: 404: not found!
+        <span class="comment">$</span> WARNING: No headers added
+</pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            Once again exactly as expected: <span class="code stat-meth">logBefore</span> > <span class="code string">"404: not found!"</span> > <span class="code stat-meth">logAfter</span>.
+        </p>
+    </div>
+    <hr>
+    <div>
+<pre>
+        <span class="comment">                                                     Auth     header</span>
+        <span class="comment">                                                     ┌───┐    ┌──┐  ┌──┐</span>
+        <span class="comment">                                                ┌───►│   ├───►│  ├─►│  │</span>
+        <span class="comment">                   chain1                       │    ├───┤    ├──┤  ├──┤</span>
+        <span class="comment"> ┌────┐    ┌────┐    ┌────┐    ┌────┐   ┌────┐  ├───►│   ├───►│  ├─►│  │</span>
+        <span class="comment"> │    ├──► │    ├──► │    ├───►│    ├──►│    ├──┤    ├───┤    ├──┤  ├──┤</span>
+        <span class="comment"> └────┘    └────┘    └────┘    └────┘   └────┘  ├───►│   ├───►│  ├─►│  │</span>
+        <span class="comment">   log     protocol            TLS              │    ├───┤    ├──┤  ├──┤</span>
+        <span class="comment">                     content          RouteSplit└───►│   ├───►│  ├─►│  │</span>
+        <span class="comment">                                                     └───┘    └──┘  └──┘</span>
+        <span class="comment">                                                     Chain2     actual HttpHandler</span>
+</pre>
+    </div>
+</div>
+</body>
+</html>
