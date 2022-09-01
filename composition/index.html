@@ -21,16 +21,7 @@
         color: var(--text-default-color);
         font-family: "Gill Sans MT", Calibri, sans-serif;
     }
-    pre > * {
-        font-family: ui-monospace, monospace;
-    }
-    pre {
-        font-family: ui-monospace, monospace;
-    }
-    span.code > * {
-        font-family: ui-monospace, monospace;
-    }
-    span.code {
+    pre, pre > *, span.code, span.code > * {
         font-family: ui-monospace, monospace;
     }
     a {
@@ -52,13 +43,20 @@
         flex-direction: column;
     }
     body > div {
-        max-width: 50rem;
+        max-width: 95vw;
         align-self: center;
     }
-
+    @media (min-device-width: 600px) {
+        body > div {
+            max-width: 50rem;
+        }
+    }
     hr {
         width: 66%;
         border: 1px solid var(--comment);
+    }
+    h1, h2, h3, h4 {
+        color: var(--class);
     }
     .indent {
         margin-left: 3rem;
@@ -694,26 +692,66 @@
 </pre>
     </div>
     <hr>
-    <div>
+        <div>
+        <h2>Why Would I Choose Composition?</h2>
         <p>
-            Once again exactly as expected: <span class="code stat-meth">logBefore</span> > <span class="code string">"404: not found!"</span> > <span class="code stat-meth">logAfter</span>.
+            Composition this way has a cost, it's <a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself#WET">WET</a>;
+            this toolbox is the generic building blocks, but you must type it out for your specific problem.
+            It also requires something different of you as a developer; the tree of classes that work together holds the complexity,
+            not any specific class itself - that is a transition that can be hard for some developers.
+            It also requires you as a developer to work more directly with interfaces and design hereof.
+        </p>
+        <p>
+            I have come to learn that what really kills development speed is not how little or how much typing you do,
+            typing is very little of the time we spend as developers,
+            and most of the typing you have to do with this compositional style is easy for the IDE to help fill out
+            (implement interface, add constructor parameters for fields).
+            But the greatest benefit of this type of composition is how the code is testable and extremely extensible;
+            this comes down to how it adheres to the <a href="https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle">open-closed principle</a>
+            and immutability.
+            <br>
+            <span class="comment indent">
+                Choosing this architectural style completely removes the need for mocking. Fakes are easy to write.
+            </span>
+        </p>
+        <p>
+            With this type of composition you get high maintainablity; you get exactly the situation where a specialisation
+            (fx a higher performance router) can be developed without touching the old router nor any other logic.
+        </p>
+        <p>
+            If I were to ask you to implement the following call chain; you should now know where to begin.
         </p>
     </div>
     <hr>
     <div>
-<pre>
-        <span class="comment">                                                     Auth     header</span>
-        <span class="comment">                                                     ┌───┐    ┌──┐  ┌──┐</span>
-        <span class="comment">                                                ┌───►│   ├───►│  ├─►│  │</span>
-        <span class="comment">                   chain1                       │    ├───┤    ├──┤  ├──┤</span>
-        <span class="comment"> ┌────┐    ┌────┐    ┌────┐    ┌────┐   ┌────┐  ├───►│   ├───►│  ├─►│  │</span>
-        <span class="comment"> │    ├──► │    ├──► │    ├───►│    ├──►│    ├──┤    ├───┤    ├──┤  ├──┤</span>
-        <span class="comment"> └────┘    └────┘    └────┘    └────┘   └────┘  ├───►│   ├───►│  ├─►│  │</span>
-        <span class="comment">   log     protocol            TLS              │    ├───┤    ├──┤  ├──┤</span>
-        <span class="comment">                     content          RouteSplit└───►│   ├───►│  ├─►│  │</span>
-        <span class="comment">                                                     └───┘    └──┘  └──┘</span>
-        <span class="comment">                                                     Chain2     actual HttpHandler</span>
+<pre>                                                             Auth     header
+                                                             ┌───┐    ┌──┐  ┌──┐
+                                                        ┌───►│   ├───►│  ├─►│  │
+                           chain1                       │    ├───┤    ├──┤  ├──┤
+         ┌────┐    ┌────┐    ┌────┐    ┌────┐   ┌────┐  ├───►│   ├───►│  ├─►│  │
+         │    ├──► │    ├──► │    ├───►│    ├──►│    ├──┤    ├───┤    ├──┤  ├──┤
+         └────┘    └────┘    └────┘    └────┘   └────┘  ├───►│   ├───►│  ├─►│  │
+           log     protocol negot.     TLS              │    ├───┤    ├──┤  ├──┤
+                             content negot.   RouteSplit└───►│   ├───►│  ├─►│  │
+                                                             └───┘    └──┘  └──┘
+                                                             Chain2     actual HttpHandler
 </pre>
+    </div>
+    <hr>
+    <div>
+        <p>
+            There is also another point to be made. The framework itself can compose objects to create functional code, but so can the client;
+            there it is easy to inject a wrapper at any configurable point in the call tree.
+            <br>
+            This means that extensible modules and parts can be developed in downstream projects where they are used,
+            and matured there before pushing the feature to the core library.
+        </p>
+        <p>
+            The full, runnable, code examples are available at:
+            <a href="/composition/WebFramework.java">Webframework</a> and <a href="/composition/Client.java">Client</a>.
+            They are runnable with the command <span class="code">java ./Client.java</span>
+            (I have removed the <span class="code keyword">record</span> for compatibility).
+        </p>
     </div>
 </div>
 </body>
