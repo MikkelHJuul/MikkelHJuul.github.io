@@ -75,19 +75,18 @@
         text-align: right;
     }
     .quote > div  > span:first-child {
-        font-size: 25px;
+        font-size: clamp(35px, 4vw, 45px);
     }
     .quote > div > span:first-child:before {
         content: '❝';
-        font-size: 30px;
     }
     .quote > div > span:first-child::after {
         content: "❞";
-        font-size: 30px;
     }
     .quote > div > span:last-child:before { content: "~"}
     .quote > div > span:last-child {
         color: var(--comment);
+        font-size: clamp(30px, 3vw, 40px);
     }
 </style>
 </head>
