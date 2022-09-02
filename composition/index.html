@@ -603,7 +603,7 @@
     }
 
     <span class="keyword">@Override</span>
-    <span class="keyword">public void </span><span class="class">addHeader</span>(<span class="class">String </span>header, <span class="class">String </span>value) {
+    <span class="keyword">public void </span><span class="meth">addHeader</span>(<span class="class">String </span>header, <span class="class">String </span>value) {
         <span class="keyword">var </span><span class="final-static">heads </span>= <span class="keyword">this</span>.<span class="instance">headers</span>.<span class="meth">computeIfAbsent</span>(header, s -&gt; <span class="keyword">new </span><span class="meth">ArrayList</span>&lt;&gt;());
         <span class="final-static">heads</span>.<span class="meth">add</span>(value);
     }
