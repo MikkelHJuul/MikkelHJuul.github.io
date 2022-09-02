@@ -262,7 +262,7 @@
 
     <span class="keyword">public </span><span class="meth">Composable</span>(<span class="interface">I </span>anI, <span class="interface">Stream</span>&lt;<span class="interface">Obj</span>&gt; objSupplier, <span class="interface">UnaryOperator</span>&lt;<span class="interface">Out</span>&gt; outEn) {<span class="comment">/* omitted */</span>}
 
-    <span class="interface">Stream</span>&lt;<span class="interface">Out</span>&gt; <span class="interface">doHandle</span>() {
+    <span class="interface">Stream</span>&lt;<span class="interface">Out</span>&gt; <span class="meth">doHandle</span>() {
         <span class="comment">// contrived, a bit too simple probably...</span>
         <span class="keyword">return </span><span class="instance">objSupplier</span>.<span class="meth">map</span>(<span class="instance">anI</span>::<span class="meth">getContent</span>).<span class="meth">map</span>(<span class="instance">outputEnricher</span>::<span class="meth">apply</span>);
     }
