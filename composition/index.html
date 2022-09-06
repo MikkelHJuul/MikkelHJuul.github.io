@@ -22,7 +22,7 @@
         font-family: "Gill Sans MT", Calibri, sans-serif;
     }
     pre, pre > *, span.code, span.code > * {
-        font-family: ui-monospace, monospace;
+        font-family: ui-monospace, monospace, "Courier New";
     }
     a {
         color: var(--keyword);
@@ -35,7 +35,10 @@
     .instance { color: var(--instance) }
     .final-static { color: var(--final-static) }
     .stat-meth { color: var(--static-method); font-style: italic }
-    .comment { color: var(--comment); font-style: italic }
+    .comment { 
+        color: var(--comment); 
+        font-style: italic 
+    }
     .string { color: var(--string) }
     body {
         background-color: var(--background);
@@ -85,9 +88,43 @@
     }
     .quote > div > span:last-child:before { content: "~"}
     .quote > div > span:last-child {
-        color: var(--comment);5
+        color: var(--comment);
         font-size: clamp(0.8em, 3vw, 1.5em);
     }
+
+    .toggletip {
+        position: relative;
+    }
+
+    .toggletip > hr:after {
+        content: "i";
+        color: var(--text-default-color);
+        background: var(--background);
+        font-size: large;
+        padding: 0 1rem;
+        position: relative;
+        top: -0.5em;
+    }
+    .toggletip > hr {
+        overflow: visible;
+        text-align: center;
+        width: 66%;
+        border: none;
+        border-top: 2px solid var(--comment);
+    }
+    .toggletip > span {
+        display: none;
+        background-color: var(--text-default-color);
+        color: var(--background);
+        border: 1px solid black;
+    }
+    .toggletip > hr:focus + span,
+    .toggletip > hr:hover + span {
+        display: block;
+        position: absolute;
+    }
+
+
 </style>
 </head>
 <body>
@@ -96,8 +133,11 @@
 
     <section>
         <h1>Composition</h1>
-        <span class="comment indent">This text is an adaptation of a 30min talk on the subject.</span>
-
+        <div class="toggletip">
+            <hr>
+            <span>This text is an adaptation of a 30min talk on the subject. <br>
+                The topic can slightly advanced for junior developers.</span>
+        </div>
         <p>
             In programming,  composition is one of those tools/styles of OOP that is much discussed and used widely. Actively or not. I have noticed how composition is used in many big successful libraries, but almost never in the day to day business applications. I think that is a loss.
         </p>
@@ -118,13 +158,16 @@
             <br>
             I pondered a bit on the topic. And I concluded that I was okay with this outcome; that I could not show <em>composition over inheritance</em>. In fact, I was happy about it because I didn't like the argumentation in general. <em>Composition over inheritance</em> is a hint, not of the greatness of composition, but the shortcomings of inheritance. In addition, I rarely have to solve issues regarding things like reuse and abuse of inheritance; I was solving issues of too much logic crammed into the same object. So I went on with another angle. <strong>How I use composition and interfaces to break down my problems</strong>.
         </p>
-        <p class="indent comment">
-            I did observe a place where composition should have been used.
-            <br>
-            Fortunately the writers had done the second worst thing: copy-pasted code; second to inheritance
-            <br>
-            while harder to refactor it's easier to maintain.
-        </p>
+        <div class="toggletip">
+            <hr>
+            <span>
+                I did observe a place where composition should have been used.
+                <br>
+                Fortunately the writers had done the second worst thing: copy-pasted code; second to inheritance
+                <br>
+                while harder to refactor it's easier to maintain.
+            </span>
+        </div>
         <p>
             In this text I will present some general tools to work with composition. I will then give an example case where I use composition of the same interface to break down a problem.
         </p>
@@ -132,21 +175,27 @@
     <hr>
     <section>
         <h2>Toolbox</h2>
+        <div class="toggletip">
+            <hr>
+            <span>You can glance through this section and come back to the concepts, for reference, later</span>
+        </div>
         <p>
             Just to get this out of the way: composition is the concept of one object using another object to fulfil its function. We say that the relation between the two is a <em>"has a"</em>-relationship.
         </p>
         <p>
             The best interface is a "Single-method interface". It has a <strong><em>strong abstraction</em></strong>. It comes with two objects input and output. They should probably be interfaces. They would normally be interfaces with <strong><em>weak abstraction</em></strong>; their resemblance to the implementing object is large.
         </p>
-        <p class="indent comment">
+    </section>
+    <div class="toggletip">
+        <hr>
+        <span>
             This statement is especially true for Java as single method interfaces can be anonymously be implemented as any object that follow the correct signature.
             <br>
             In fact, the Go superpower; of interfaces being implemented once an object has its containing methods is exactly this - in Java only for single method interfaces.
             <br>
             ie. "My Code" implements "your" single-method interfaces without me knowing it!
-        </p>
-    </section>
-    <hr>
+        </span>
+    </div>
     <section>
         <pre>
 <span class="keyword">interface </span><span class="interface">Obj </span>{
@@ -169,11 +218,11 @@
     <hr>
     <section>
         <pre>
-<span class="comment">/**</span>
- <span class="comment">* a.k.a. Decorator pattern</span>
- <span class="comment">* Wraps to apply logic before, after or around another implementation</span>
- <span class="comment">* notably: enhance input/output, metrics, logging etc.</span>
- <span class="comment">*/</span>
+<span class="block-comment">/**</span>
+ <span class="block-comment">* a.k.a. Decorator pattern</span>
+ <span class="block-comment">* Wraps to apply logic before, after or around another implementation</span>
+ <span class="block-comment">* notably: enhance input/output, metrics, logging etc.</span>
+ <span class="block-comment">*/</span>
 <span class="keyword">final class </span><span class="class">Wrapper </span><span class="keyword">implements </span><span class="interface">I </span>{
     <span class="interface">I </span> <span class="instance">other</span>; <span class="comment">// delegate </span>
 
@@ -196,11 +245,11 @@
     <hr>
     <section>
         <pre>
-<span class="comment">/**</span>
- <span class="comment">* Map</span><span class="comment">&lt;K</span><span class="comment">, I&gt; </span>
- <span class="comment">* used to split on logical key</span>
- <span class="comment">* Compositional IFactory</span>
- <span class="comment">*/</span>
+<span class="block-comment">/**</span>
+ <span class="block-comment">* Map</span><span class="block-comment">&lt;K</span><span class="block-comment">, I&gt; </span>
+ <span class="block-comment">* used to split on logical key</span>
+ <span class="block-comment">* Compositional IFactory</span>
+ <span class="block-comment">*/</span>
 <span class="keyword">final class </span><span class="class">MapDelegate </span><span class="keyword">implements </span><span class="interface">I </span>{
     <span class="interface">Map</span>&lt;<span class="interface">Key</span>, <span class="interface">I</span>&gt; <span class="instance">iMap</span>;
     <span class="interface">Function</span>&lt;<span class="interface">Obj</span>, <span class="interface">Key</span>&gt; <span class="instance">keyFunc</span>;
@@ -221,10 +270,10 @@
     <hr>
     <section>
         <pre>
-<span class="comment">/**</span>
- <span class="comment">* list</span><span class="comment">&lt;I&gt;</span>
- <span class="comment">* it is called a composite I</span>
- <span class="comment">*/</span>
+<span class="block-comment">/**</span>
+ <span class="block-comment">* list</span><span class="comment">&lt;I&gt;</span>
+ <span class="block-comment">* it is called a composite I</span>
+ <span class="block-comment">*/</span>
 <span class="keyword">final class </span><span class="class">CompositeDelegate </span><span class="keyword">implements </span><span class="interface">I </span>{
     <span class="interface">List</span>&lt;<span class="interface">I</span>&gt; <span class="instance">is</span>;
     <span class="interface">BinaryOperator</span>&lt;<span class="interface">Out</span>&gt; <span class="instance">aggregator</span>; <span class="comment">// void interfaces would just call all wrapped classes</span>
@@ -252,11 +301,11 @@
     <hr>
     <section>
         <pre>
-<span class="comment">/**</span>
- <span class="comment">* A concrete with or without an interface; </span>
- <span class="comment">* holds helpful control flow etc.</span>
- <span class="comment">* This could be used to adapt the interface I to another interface.</span>
- <span class="comment">*/</span>
+<span class="block-comment">/**</span>
+ <span class="block-comment">* A concrete with or without an interface; </span>
+ <span class="block-comment">* holds helpful control flow etc.</span>
+ <span class="block-comment">* This could be used to adapt the interface I to another interface.</span>
+ <span class="block-comment">*/</span>
 <span class="keyword">final class </span><span class="class">Composable </span>{
     <span class="keyword">private final </span><span class="interface">I </span><span class="instance">anI</span>;
     <span class="keyword">private final </span><span class="interface">Stream</span>&lt;<span class="interface">Obj</span>&gt; <span class="instance">objSupplier</span>;
@@ -280,11 +329,11 @@
     <hr>
     <section>
     <pre>
-<span class="comment">/**</span>
- <span class="comment">* Factory class that hides private implementations, </span>
- <span class="comment">* accessible via public static factory methods</span>
- <span class="comment">* produce expressive (dare I say - self documenting) APIs</span>
- <span class="comment">*/</span>
+<span class="block-comment">/**</span>
+ <span class="block-comment">* Factory class that hides private implementations, </span>
+ <span class="block-comment">* accessible via public static factory methods</span>
+ <span class="block-comment">* produce expressive (dare I say - self documenting) APIs</span>
+ <span class="block-comment">*/</span>
 <span class="keyword">public final class </span><span class="class">Is </span>{ <span class="comment">// {interfaceName}s convention</span>
     <span class="keyword">private </span><span class="meth">Is</span>() {} <span class="comment">// cannot instantiate</span>
 
@@ -375,23 +424,23 @@
     <hr>
     <section>
 <pre>
-    <span class="comment">/**</span>
-     <span class="comment">* ┌─────────────────┐</span>
-     <span class="comment">* │     Routing     │</span>
-     <span class="comment">* │          ┌──┐   │</span>
-     <span class="comment">* │       ┌─►│  │   │</span>
-     <span class="comment">* │       │  ├──┤   │</span>
-     <span class="comment">* │  path ├─►│  │   │</span>
-     <span class="comment">* │  ┌──┐ │  ├──┤   │</span>
-     <span class="comment">* │  │  ├─┼─►│  │   │</span>
-     <span class="comment">* │  └──┘ │  ├──┤   │</span>
-     <span class="comment">* │       ├─►│  │   │</span>
-     <span class="comment">* │       │  ├──┤   │</span>
-     <span class="comment">* │       └─►│  │   │</span>
-     <span class="comment">* │          └──┘   │</span>
-     <span class="comment">* │       Handlers  │</span>
-     <span class="comment">* └─────────────────┘</span>
-     <span class="comment">*/</span>
+    <span class="block-comment">/**</span>
+     <span class="block-comment">* ┌─────────────────┐</span>
+     <span class="block-comment">* │     Routing     │</span>
+     <span class="block-comment">* │          ┌──┐   │</span>
+     <span class="block-comment">* │       ┌─►│  │   │</span>
+     <span class="block-comment">* │       │  ├──┤   │</span>
+     <span class="block-comment">* │  path ├─►│  │   │</span>
+     <span class="block-comment">* │  ┌──┐ │  ├──┤   │</span>
+     <span class="block-comment">* │  │  ├─┼─►│  │   │</span>
+     <span class="block-comment">* │  └──┘ │  ├──┤   │</span>
+     <span class="block-comment">* │       ├─►│  │   │</span>
+     <span class="block-comment">* │       │  ├──┤   │</span>
+     <span class="block-comment">* │       └─►│  │   │</span>
+     <span class="block-comment">* │          └──┘   │</span>
+     <span class="block-comment">* │       Handlers  │</span>
+     <span class="block-comment">* └─────────────────┘</span>
+     <span class="block-comment">*/</span>
     <span class="keyword">private static final class </span><span class="class">RoutingHttpHandler </span><span class="keyword">implements </span><span class="interface">HttpHandler </span>{
         <span class="comment">// ignore concurrency</span>
         <span class="keyword">private final </span><span class="interface">Map</span>&lt;<span class="class">String</span>, <span class="interface">HttpHandler</span>&gt; <span class="instance">handlers</span>;
@@ -452,9 +501,9 @@
     <hr>
     <section>
 <pre>
-        <span class="comment">/**</span>
-         <span class="comment">* Simple MiddleWare; short circuits on not authenticated</span>
-         <span class="comment">*/</span>
+        <span class="block-comment">/**</span>
+         <span class="block-comment">* Simple MiddleWare; short circuits on not authenticated</span>
+         <span class="block-comment">*/</span>
         <span class="keyword">private static final class </span><span class="class">AuthenticationMiddleWare </span><span class="keyword">implements </span><span class="interface">HttpHandler </span>{
 
             <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">unAuthHandler</span>;
@@ -726,7 +775,7 @@
     </section>
     <hr>
     <section>
-<pre>                                                             Auth     header
+<pre class="block-comment">                                                             Auth     header
                                                              ┌───┐    ┌──┐  ┌──┐
                                                         ┌───►│   ├───►│  ├─►│  │
                            chain1                       │    ├───┤    ├──┤  ├──┤
