@@ -56,7 +56,8 @@
     }
     hr {
         width: 66%;
-        border: 1px solid var(--comment);
+        border: none;
+        border-top: 2px solid var(--comment)
     }
     h1, h2, h3, h4 {
         color: var(--class);
@@ -78,7 +79,7 @@
         text-align: right;
     }
     .quote > div  > span:first-child {
-        font-size: clamp(1.1em, 4vw, 3em);
+        font-size: 4.5vh;
     }
     .quote > div > span:first-child:before {
         content: '❝';
@@ -89,7 +90,7 @@
     .quote > div > span:last-child:before { content: "~"}
     .quote > div > span:last-child {
         color: var(--comment);
-        font-size: clamp(0.8em, 3vw, 1.5em);
+        font-size: 2.5vh;
     }
 
     .toggletip {
@@ -101,22 +102,19 @@
         color: var(--text-default-color);
         background: var(--background);
         font-size: large;
-        padding: 0 1rem;
+        padding: 0 0.4rem;
         position: relative;
-        top: -0.5em;
+        top: -0.66em;
     }
     .toggletip > hr {
         overflow: visible;
         text-align: center;
-        width: 66%;
-        border: none;
-        border-top: 2px solid var(--comment);
     }
     .toggletip > span {
         display: none;
         background-color: var(--text-default-color);
         color: var(--background);
-        border: 1px solid black;
+        border: 2px solid var(--background);
     }
     .toggletip > hr:focus + span,
     .toggletip > hr:hover + span {
