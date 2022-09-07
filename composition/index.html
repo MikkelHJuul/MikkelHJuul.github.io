@@ -4,6 +4,7 @@
 <title>Composition</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
     :root {
         --keyword: #c792ea;
         --class: #dbb979;
@@ -22,7 +23,7 @@
         font-family: "Gill Sans MT", Calibri, sans-serif;
     }
     pre, pre > *, span.code, span.code > * {
-        font-family: Consolas, "Courier New", ui-monospace, monospace;
+        font-family: "Fira Code", Consolas, ui-monospace, monospace;
     }
     a {
         color: var(--keyword);
@@ -104,7 +105,7 @@
         font-size: large;
         padding: 0 1vh;
         position: absolute;
-        top: min(-1.4vh, -1.3vw);
+        top: calc(-0.4em + -0.5vmax);
     }
     .toggletip > hr {
         overflow: visible;
