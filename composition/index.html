@@ -816,6 +816,56 @@
           </div>
         </div>
     </section>
+   <section>
+
+    <h2>Alternative Middlewares</h2>
+
+    <div class="toggletip">
+        <hr>
+        <span>
+           This section expend beyond my talk
+        </span>
+    </div>
+
+    <p>
+
+       In this section I will expand on how you can do middlewares. Some times you may wish to add functionality to a subsection of an interface, or it is hard to inject middlewares in that section of the code. There are two immediate fallbacks. Either you add an interface that handles mapping extending or virtually implementing <span class="code"><span class="interface">UnaryOperator</span>&lt;<span class="interface">HttpHandler</span>&gt;</span>
+        otherwise you can build a middleware target interface
+</p>
+    <hr>
+    <pre>
+<span class="keyword">interface </span><span class="interface">HttpHandlerMiddleware </span>{
+    <span class="keyword">void</span> <span class="meth">serveHttp</span>(<span class="interface">HttpHandler</span> handler, <span class="interface">Request</span> req, <span class="interface">Response</span> res);
+}
+    </pre>
+    <hr>
+    <p>
+        This way of handling middleware enable more generic midleware injection, especially if you never care for the ordering of the middlewares. Middlewares are composed as such
+    </p>
+    <hr>
+    <pre><span class="keyword">private static final class </span><span class="class">HttpMiddlewareAdapter </span><span class="keyword">implements </span><span class="interface">HttpHandler </span>{
+    <span class="keyword">private final </span><span class="interface">HttpHandler </span><span class="instance">handler</span>;
+    <span class="keyword">private final </span><span class="interface">HttpHandlerMiddleware </span><span class="instance">middleware</span>;
+   
+    <span class="meth">HttpMiddlewareAdapter</span>(<span class="interface">HttpHandler</span> handler, <span class="interface">HttpHandlerMiddleware</span> middleware) {
+       <span class="keyword">this</span>.<span class="instance">handler </span>= handler;
+       <span class="keyword">this</span>.<span class="instance">middleware </span>= middleware;
+    }
+ 
+    <span class="class">@Override</span>
+    <span class="keyword">public void </span><span class="meth">serveHttp</span>(<span class="interface">Request</span> res, <span class="interface">Response</span> res) {
+        <span class="instance">middleware</span>.<span class="meth">serveHttp</span>(<span class="instance">handler</span>, req, res);
+    }
+}
+
+<span class="keyword">public static </span><span class="interface">HttpHandler </span><span class="meth">withMiddlewares</span>(<span class="interface">HttpHandler</span> handler, <span class="interface">List</span>&lt;<span class="interface">HttpHandlerMiddleware</span>&gt; middlewares) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="final-static">middleware</span>: middlewares) {
+        handler = <span class="keyword">new</span><span class="meth"> DataAssetSourceMiddlewareAdapter</span>(handler, <span class="final-static">middleware</span>);
+    }
+    <span class="keyword">return</span> handler;
+}
+</pre>
+</section>
 </article>
 </body>
 </html>
